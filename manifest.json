@@ -1,0 +1,18 @@
+{
+  "name": "BloqDrop",
+  "short_name": "BloqDrop",
+  "description": "Juego de bloques que caen: encaja piezas, completa líneas y sube de nivel.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#0b0716",
+  "theme_color": "#0b0716",
+  "categories": ["games"],
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
