@@ -1,7 +1,7 @@
 // BloqDrop service worker: juego disponible sin conexión.
 // Sube el número de versión cada vez que publiques cambios.
-const CACHE = 'bloqdrop-v1';
-const FILES = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png', './icons/maskable-512.png'];
+const CACHE = 'bloqdrop-v2';
+const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './maskable-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
