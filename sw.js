@@ -1,7 +1,7 @@
 // BloqDrop service worker: juego disponible sin conexión.
 // Sube el número de versión cada vez que publiques cambios.
-const CACHE = 'bloqdrop-v2';
-const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './maskable-512.png'];
+const CACHE = 'bloqdrop-v3';
+const FILES = ['./', './index.html', './engine.js', './wallet.js', './manifest.json', './icon-192.png', './icon-512.png', './maskable-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
@@ -9,9 +9,10 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
-// Red primero (para recibir actualizaciones), caché si no hay internet.
+// Solo archivos del propio sitio (el ranking siempre va directo al servidor).
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  if (e.request.method !== 'GET' || url.origin !== self.location.origin) return;
   e.respondWith(
     fetch(e.request).then(res => {
       const copy = res.clone();
