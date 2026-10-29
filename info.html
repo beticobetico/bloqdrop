@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BloqDrop · Juego de bloques con premio diario en SKR</title>
+<meta name="description" content="BloqDrop: juego de bloques que caen para el Solana Seeker. Gratis, sin anuncios, con ranking diario y 100 SKR para el #1 cada día.">
+<meta property="og:title" content="BloqDrop · Gana 100 SKR cada día">
+<meta property="og:description" content="Juego de bloques gratis para el Solana Seeker. Ranking diario verificado y 100 SKR para el #1.">
+<meta property="og:image" content="https://beticobetico.github.io/bloqdrop/icon-512.png">
+<meta name="theme-color" content="#0b0716">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>
+:root{--bg:#0b0716;--panel:#140f26;--line:#2a2145;--txt:#ece7ff;--mut:#a79dcc;--pur:#9945FF;--grn:#14F195;--gold:#facc15}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6}
+a{color:var(--grn)}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+/* idioma */
+body.lang-es [lang="en"]{display:none!important}
+body.lang-en [lang="es"]{display:none!important}
+/* barra */
+nav{position:sticky;top:0;z-index:5;background:rgba(11,7,22,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:12px;height:60px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:20px;text-decoration:none;color:var(--txt)}
+.logo img{width:34px;height:34px;border-radius:9px}
+.grad{background:linear-gradient(90deg,var(--pur),var(--grn));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sp{flex:1}
+.langbtn{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.langbtn button{background:transparent;border:0;color:var(--mut);font-weight:800;padding:6px 12px;cursor:pointer;font-size:13px}
+.langbtn button.on{background:#24164a;color:var(--txt)}
+.btn{display:inline-block;border-radius:12px;padding:12px 22px;font-weight:800;text-decoration:none;font-size:16px}
+.btn.main{color:#0b0716;background:linear-gradient(90deg,var(--pur),var(--grn))}
+.btn.alt{color:var(--txt);border:1px solid var(--line);background:var(--panel)}
+nav .btn{padding:8px 16px;font-size:14px}
+/* hero */
+.hero{position:relative;overflow:hidden;padding:64px 0 40px}
+.hero:before{content:"";position:absolute;width:620px;height:620px;right:-120px;top:-200px;background:radial-gradient(circle,rgba(153,69,255,.45),transparent 65%);pointer-events:none}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;position:relative}
+.badge{display:inline-flex;gap:8px;align-items:center;border:1px solid rgba(250,204,21,.45);background:rgba(250,204,21,.1);border-radius:999px;padding:6px 14px;font-weight:800;font-size:14px}
+.badge b{color:var(--gold)}
+h1{font-size:clamp(40px,7vw,68px);line-height:1.02;margin:18px 0 14px;letter-spacing:-1.5px;font-weight:900}
+.lead{font-size:clamp(17px,2.2vw,20px);color:#d4ccf0;margin:0 0 26px;max-width:540px}
+.ctas{display:flex;gap:12px;flex-wrap:wrap}
+.phone{justify-self:center;width:min(300px,80vw);border-radius:38px;padding:9px;background:#05030b;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 2px #2c2250,0 0 60px rgba(153,69,255,.35);transform:rotate(3deg)}
+.phone img{width:100%;display:block;border-radius:30px}
+/* secciones */
+section{padding:56px 0}
+h2{font-size:clamp(28px,4vw,38px);margin:0 0 8px;font-weight:900;letter-spacing:-.5px}
+.sub{color:var(--mut);margin:0 0 28px;font-size:17px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+.card .ic{font-size:28px}
+.card h3{margin:8px 0 6px;font-size:18px}
+.card p{margin:0;color:var(--mut);font-size:15px}
+.prizebox{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;background:linear-gradient(120deg,rgba(250,204,21,.12),rgba(20,241,149,.08));border:1px solid rgba(250,204,21,.4);border-radius:20px;padding:28px}
+.big{font-size:clamp(48px,8vw,76px);font-weight:900;line-height:1;color:var(--gold);text-align:center}
+.big small{display:block;font-size:16px;color:var(--txt);letter-spacing:2px;margin-top:6px}
+ol.steps{margin:0;padding-left:20px;color:#d4ccf0}
+ol.steps li{margin:6px 0}
+.ctrl{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{white-space:nowrap;font-weight:800;color:var(--txt);width:42%}
+td:last-child{color:var(--mut)}
+.shots{display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
+.shots img{width:min(260px,44vw);border-radius:22px;border:1px solid var(--line)}
+details{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:10px}
+summary{cursor:pointer;font-weight:800;font-size:16px}
+details p{color:var(--mut);margin:10px 0 2px}
+code{background:#0f0a1e;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:13px;word-break:break-all}
+footer{border-top:1px solid var(--line);padding:30px 0 40px;color:var(--mut);font-size:14px}
+footer .wrap{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
+footer a{color:var(--mut)}
+@media(max-width:820px){
+  .hero .wrap{grid-template-columns:1fr}
+  .phone{transform:none}
+  .grid{grid-template-columns:1fr}
+  .ctrl{grid-template-columns:1fr}
+  .prizebox{grid-template-columns:1fr;text-align:center}
+  nav .btn{display:none}
+}
+</style>
+</head>
+<body class="lang-es">
+
+<nav><div class="wrap">
+  <a class="logo" href="#"><img src="icon-192.png" alt=""><span>Bloq<span class="grad">Drop</span></span></a>
+  <div class="sp"></div>
+  <div class="langbtn"><button data-l="es" class="on">ES</button><button data-l="en">EN</button></div>
+  <a class="btn main" href="./"><span lang="es">Jugar</span><span lang="en">Play</span></a>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div>
+    <div class="badge">🏆 <span lang="es"><b>100 SKR</b> cada día para el #1</span><span lang="en"><b>100 SKR</b> every day for #1</span></div>
+    <h1><span lang="es">Encaja bloques.<br>Gana <span class="grad">SKR</span>.</span><span lang="en">Stack blocks.<br>Win <span class="grad">SKR</span>.</span></h1>
+    <p class="lead" lang="es">BloqDrop es un juego de bloques que caen, hecho para el teléfono Solana Seeker. Es gratis y no tiene anuncios. Cada día, la mejor puntuación del ranking gana 100 SKR.</p>
+    <p class="lead" lang="en">BloqDrop is a falling-block puzzle game built for the Solana Seeker phone. It's free with no ads, and every day the top score on the leaderboard wins 100 SKR.</p>
+    <div class="ctas">
+      <a class="btn main" href="./"><span lang="es">▶ Jugar ahora</span><span lang="en">▶ Play now</span></a>
+      <a class="btn alt" href="#premio"><span lang="es">Cómo ganar</span><span lang="en">How to win</span></a>
+    </div>
+  </div>
+  <div class="phone"><img src="captura-1.jpg" alt="BloqDrop"></div>
+</div></header>
+
+<section><div class="wrap">
+  <h2><span lang="es">¿Qué es BloqDrop?</span><span lang="en">What is BloqDrop?</span></h2>
+  <p class="sub" lang="es">Un clásico de bloques, rediseñado para jugar con una mano en el móvil.</p>
+  <p class="sub" lang="en">A block-puzzle classic, redesigned for one-handed mobile play.</p>
+  <div class="grid">
+    <div class="card"><div class="ic">📱</div>
+      <h3 lang="es">Hecho para Seeker</h3><h3 lang="en">Built for Seeker</h3>
+      <p lang="es">Pantalla completa, botones grandes y gestos táctiles, pensados para la pantalla alta del Seeker. También funciona en cualquier teléfono o computadora.</p>
+      <p lang="en">Full screen, big buttons and touch gestures, designed for Seeker's tall screen. It also works on any phone or computer.</p></div>
+    <div class="card"><div class="ic">🏆</div>
+      <h3 lang="es">Ranking diario</h3><h3 lang="en">Daily leaderboard</h3>
+      <p lang="es">Compite cada día con jugadores de todo el mundo. El ranking se reinicia a medianoche y el #1 gana 100 SKR.</p>
+      <p lang="en">Compete every day with players worldwide. The leaderboard resets at midnight and #1 wins 100 SKR.</p></div>
+    <div class="card"><div class="ic">🛡️</div>
+      <h3 lang="es">Juego limpio verificado</h3><h3 lang="en">Verified fair play</h3>
+      <p lang="es">Nuestro servidor vuelve a jugar cada partida movimiento por movimiento antes de aceptarla. Los puntajes inventados se rechazan.</p>
+      <p lang="en">Our server replays every game move by move before accepting it. Made-up scores are rejected.</p></div>
+    <div class="card"><div class="ic">🎁</div>
+      <h3 lang="es">100% gratis</h3><h3 lang="en">100% free</h3>
+      <p lang="es">Sin compras, sin pagos para participar y sin anuncios. Solo juegas.</p>
+      <p lang="en">No purchases, no entry fees and no ads. You just play.</p></div>
+    <div class="card"><div class="ic">👛</div>
+      <h3 lang="es">Tu wallet, segura</h3><h3 lang="en">Your wallet stays safe</h3>
+      <p lang="es">Solo usamos tu dirección pública para el ranking y el premio. Nunca pedimos tu frase secreta ni que firmes transacciones.</p>
+      <p lang="en">We only use your public address for the leaderboard and prize. We never ask for your secret phrase or for you to sign transactions.</p></div>
+    <div class="card"><div class="ic">⚡</div>
+      <h3 lang="es">Juega sin conexión</h3><h3 lang="en">Plays offline</h3>
+      <p lang="es">Sin internet puedes seguir jugando en modo práctica. Tu récord personal se guarda en el teléfono.</p>
+      <p lang="en">Without internet you can keep playing in practice mode. Your personal best is saved on your phone.</p></div>
+  </div>
+</div></section>
+
+<section id="premio"><div class="wrap">
+  <div class="prizebox">
+    <div class="big">100<small>SKR / <span lang="es">DÍA</span><span lang="en">DAY</span></small></div>
+    <div>
+      <h2 lang="es">Cómo ganar 100 SKR</h2><h2 lang="en">How to win 100 SKR</h2>
+      <ol class="steps" lang="es">
+        <li>Abre BloqDrop y toca <b>👛 Conectar wallet</b>. En el Seeker se abre tu wallet; también puedes pegar tu dirección de Solana.</li>
+        <li>Juega todas las partidas que quieras. Solo cuenta tu mejor puntuación del día.</li>
+        <li>A medianoche (hora de República Dominicana, UTC−4) cierra el ranking.</li>
+        <li>El #1 recibe <b>100 SKR</b> en su wallet dentro de las 72 horas siguientes.</li>
+      </ol>
+      <ol class="steps" lang="en">
+        <li>Open BloqDrop and tap <b>👛 Connect wallet</b>. On Seeker your wallet opens; you can also paste your Solana address.</li>
+        <li>Play as many games as you want. Only your best score of the day counts.</li>
+        <li>The leaderboard closes at midnight (Dominican Republic time, UTC−4).</li>
+        <li>#1 receives <b>100 SKR</b> in their wallet within 72 hours.</li>
+      </ol>
+      <p style="margin:14px 0 0;color:var(--mut);font-size:14px"><span lang="es">Gratis · Mayores de 18 · Una wallet por persona ·</span><span lang="en">Free · 18+ · One wallet per person ·</span> <a href="reglas.html"><span lang="es">Reglas completas</span><span lang="en">Full rules</span></a></p>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2><span lang="es">Cómo se juega</span><span lang="en">How to play</span></h2>
+  <p class="sub" lang="es">Encaja las piezas para completar líneas horizontales. Cada línea completa desaparece y suma puntos. El juego termina cuando las piezas llegan arriba.</p>
+  <p class="sub" lang="en">Fit the pieces to complete horizontal lines. Each full line clears and scores points. The game ends when the pieces reach the top.</p>
+  <div class="ctrl">
+    <div class="card">
+      <h3>👆 <span lang="es">Gestos en el tablero</span><span lang="en">Board gestures</span></h3>
+      <table lang="es">
+        <tr><td>Tocar</td><td>Girar (lado izquierdo ↺, derecho ↻)</td></tr>
+        <tr><td>Deslizar a los lados</td><td>Mover la pieza</td></tr>
+        <tr><td>Deslizar despacio abajo</td><td>Bajar más rápido</td></tr>
+        <tr><td>Deslizar rápido abajo</td><td>Soltar al instante</td></tr>
+        <tr><td>Deslizar arriba</td><td>Guardar la pieza</td></tr>
+      </table>
+      <table lang="en">
+        <tr><td>Tap</td><td>Rotate (left side ↺, right side ↻)</td></tr>
+        <tr><td>Swipe sideways</td><td>Move the piece</td></tr>
+        <tr><td>Slow swipe down</td><td>Soft drop</td></tr>
+        <tr><td>Fast swipe down</td><td>Hard drop</td></tr>
+        <tr><td>Swipe up</td><td>Hold the piece</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>⭐ <span lang="es">Puntuación</span><span lang="en">Scoring</span></h3>
+      <table lang="es">
+        <tr><td>1 línea</td><td>100 × nivel</td></tr>
+        <tr><td>2 líneas</td><td>300 × nivel</td></tr>
+        <tr><td>3 líneas</td><td>500 × nivel</td></tr>
+        <tr><td>4 líneas</td><td>800 × nivel</td></tr>
+        <tr><td>Combos y tablero limpio</td><td>Puntos extra</td></tr>
+        <tr><td>Cada 10 líneas</td><td>Sube el nivel y la velocidad</td></tr>
+      </table>
+      <table lang="en">
+        <tr><td>1 line</td><td>100 × level</td></tr>
+        <tr><td>2 lines</td><td>300 × level</td></tr>
+        <tr><td>3 lines</td><td>500 × level</td></tr>
+        <tr><td>4 lines</td><td>800 × level</td></tr>
+        <tr><td>Combos &amp; perfect clear</td><td>Bonus points</td></tr>
+        <tr><td>Every 10 lines</td><td>Level and speed go up</td></tr>
+      </table>
+    </div>
+  </div>
+  <p style="color:var(--mut);font-size:14px;margin-top:14px" lang="es">En computadora: flechas para mover y girar, Espacio para soltar, C para guardar, P para pausa.</p>
+  <p style="color:var(--mut);font-size:14px;margin-top:14px" lang="en">On a computer: arrow keys to move and rotate, Space to hard drop, C to hold, P to pause.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2 style="text-align:center"><span lang="es">Capturas</span><span lang="en">Screenshots</span></h2>
+  <p class="sub" style="text-align:center" lang="es">Así se ve BloqDrop en el Seeker.</p>
+  <p class="sub" style="text-align:center" lang="en">This is BloqDrop on Seeker.</p>
+  <div class="shots"><img src="captura-1.jpg" alt=""><img src="captura-2.jpg" alt=""></div>
+</div></section>
+
+<section><div class="wrap">
+  <h2><span lang="es">Preguntas frecuentes</span><span lang="en">FAQ</span></h2>
+  <div lang="es">
+    <details><summary>¿Cuesta algo jugar o participar?</summary><p>No. BloqDrop es gratis, no tiene compras dentro de la app y participar en el concurso diario no requiere ningún pago.</p></details>
+    <details><summary>¿Dónde lo descargo?</summary><p>En la Solana dApp Store del Seeker, buscando "BloqDrop". También puedes jugarlo desde el navegador en <a href="./">beticobetico.github.io/bloqdrop</a> e instalarlo con "Instalar app" en Chrome.</p></details>
+    <details><summary>¿Qué es SKR?</summary><p>SKR es el token del ecosistema Solana Mobile y del Seeker. El premio se paga con el token oficial: <code>SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3</code>. Su valor cambia con el mercado.</p></details>
+    <details><summary>¿Necesito conectar mi wallet?</summary><p>Solo si quieres entrar al ranking y al premio. Usamos únicamente tu dirección pública: nunca pedimos tu frase secreta ni que firmes transacciones.</p></details>
+    <details><summary>¿Qué pasa si alguien hace trampa?</summary><p>Cada partida se verifica en el servidor jugándola de nuevo. Los puntajes falsos se rechazan, y las partidas con velocidad de bot se revisan antes de pagar. El uso de bots o varias wallets descalifica.</p></details>
+    <details><summary>¿A qué hora cierra el ranking?</summary><p>A medianoche, hora de República Dominicana (UTC−4). En el juego verás una cuenta regresiva.</p></details>
+    <details><summary>¿Cuándo recibo el premio?</summary><p>Dentro de las 72 horas siguientes al cierre del día, en la wallet que usaste para jugar.</p></details>
+  </div>
+  <div lang="en">
+    <details><summary>Does it cost anything to play or enter?</summary><p>No. BloqDrop is free, has no in-app purchases, and entering the daily contest requires no payment.</p></details>
+    <details><summary>Where do I get it?</summary><p>On the Solana dApp Store on Seeker, by searching "BloqDrop". You can also play in your browser at <a href="./">beticobetico.github.io/bloqdrop</a> and install it with "Install app" in Chrome.</p></details>
+    <details><summary>What is SKR?</summary><p>SKR is the token of the Solana Mobile and Seeker ecosystem. Prizes are paid in the official token: <code>SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3</code>. Its value changes with the market.</p></details>
+    <details><summary>Do I need to connect my wallet?</summary><p>Only to join the leaderboard and win the prize. We only use your public address: we never ask for your secret phrase or for you to sign transactions.</p></details>
+    <details><summary>What if someone cheats?</summary><p>Every game is verified on the server by replaying it. Fake scores are rejected, and games played at bot speed are reviewed before payment. Using bots or multiple wallets leads to disqualification.</p></details>
+    <details><summary>When does the leaderboard close?</summary><p>At midnight Dominican Republic time (UTC−4). The game shows a countdown.</p></details>
+    <details><summary>When do I get the prize?</summary><p>Within 72 hours after the day closes, in the wallet you used to play.</p></details>
+  </div>
+</div></section>
+
+<section style="text-align:center"><div class="wrap">
+  <h2><span lang="es">¿Listo para el #1?</span><span lang="en">Ready for #1?</span></h2>
+  <p class="sub" lang="es">El ranking de hoy ya está abierto.</p>
+  <p class="sub" lang="en">Today's leaderboard is open.</p>
+  <a class="btn main" href="./"><span lang="es">▶ Jugar BloqDrop</span><span lang="en">▶ Play BloqDrop</span></a>
+</div></section>
+
+<footer><div class="wrap">
+  <div>© 2026 BloqDrop · La Romana, <span lang="es">República Dominicana</span><span lang="en">Dominican Republic</span><br><span lang="es">Contacto</span><span lang="en">Contact</span>: <a href="mailto:beticobetico@gmail.com">beticobetico@gmail.com</a></div>
+  <div><a href="reglas.html"><span lang="es">Reglas del concurso</span><span lang="en">Contest rules</span></a> · <a href="terminos.html"><span lang="es">Términos de Uso</span><span lang="en">Terms of Use</span></a> · <a href="privacidad.html"><span lang="es">Privacidad</span><span lang="en">Privacy</span></a></div>
+  <div style="flex-basis:100%;font-size:12px" lang="es">BloqDrop es un proyecto independiente. No está afiliado a Solana Mobile ni a la Solana Foundation.</div>
+  <div style="flex-basis:100%;font-size:12px" lang="en">BloqDrop is an independent project, not affiliated with Solana Mobile or the Solana Foundation.</div>
+</div></footer>
+
+<script>
+(function(){
+  function set(l){
+    document.body.className='lang-'+l;document.documentElement.lang=l;
+    document.querySelectorAll('[data-l]').forEach(function(b){b.classList.toggle('on',b.dataset.l===l)});
+    document.title=l==='es'?'BloqDrop · Juego de bloques con premio diario en SKR':'BloqDrop · Block puzzle game with a daily SKR prize';
+    try{localStorage.setItem('bloqdrop_lang',l)}catch(e){}
+  }
+  var saved=null;try{saved=localStorage.getItem('bloqdrop_lang')}catch(e){}
+  var q=(location.hash||'').replace('#','');
+  var l=(q==='en'||q==='es')?q:(saved||((navigator.language||'es').toLowerCase().indexOf('es')===0?'es':'en'));
+  set(l);
+  document.querySelectorAll('[data-l]').forEach(function(b){b.addEventListener('click',function(){set(b.dataset.l)})});
+})();
+</script>
+</body>
+</html>
