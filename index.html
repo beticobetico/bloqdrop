@@ -86,6 +86,11 @@ main{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;g
 input.addr{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0f0a1e;color:var(--txt);font-family:ui-monospace,Menlo,monospace;font-size:13px;user-select:text;-webkit-user-select:text}
 .sheet p{color:var(--mut);font-size:13.5px;line-height:1.5;margin:6px 0}
 .chip{font-family:ui-monospace,Menlo,monospace}
+.sharebtn{border:0;border-radius:12px;padding:11px 22px;font-weight:800;font-size:15px;color:#0b0716;background:linear-gradient(90deg,#facc15,#fb923c);min-width:180px}
+#shImg{width:100%;max-width:340px;align-self:center;border-radius:14px;border:1px solid var(--line);display:block;margin:4px auto 12px}
+.shgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.shgrid button,.shgrid a{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--txt);font-weight:800;font-size:14px;text-decoration:none}
+.shgrid .wide{grid-column:1/-1;border:0;color:#0b0716;background:linear-gradient(90deg,var(--pur),var(--grn))}
 </style>
 </head>
 <body>
@@ -137,6 +142,16 @@ input.addr{width:100%;padding:12px;border-radius:10px;border:1px solid var(--lin
     <div id="lbTop"></div>
     <div class="list" id="lbList"><div class="empty">Cargando…</div></div>
     <p class="tiny" style="text-align:center;margin-top:10px"><a href="reglas.html">Reglas del concurso</a> · <a href="terminos.html">Términos</a> · <a href="privacidad.html">Privacidad</a></p>
+  </div>
+</div>
+
+<!-- Compartir -->
+<div class="modal hide" id="shModal">
+  <div class="sheet" style="overflow:auto;touch-action:pan-y">
+    <div class="shead"><h2>📤 Compartir puntaje</h2><button class="icon" data-close="shModal" aria-label="Cerrar">✕</button></div>
+    <img id="shImg" alt="Tu puntaje en BloqDrop">
+    <div class="shgrid" id="shBtns"></div>
+    <div class="status" id="shMsg" style="margin-top:10px;text-align:center"></div>
   </div>
 </div>
 
@@ -239,6 +254,7 @@ function gameOver(){
    <p>${record?'🏆 ¡Nuevo récord personal!':'Récord: '+best.toLocaleString('es')}<br>Nivel ${g.level} · ${g.lines} líneas</p>
    <div class="status" id="rankStatus"></div>
    <button class="cta" data-o="new">Jugar de nuevo</button>
+   <button class="sharebtn" data-o="share">📤 Compartir puntaje</button>
    <div class="row"><button class="ghostbtn" data-o="board">🏆 Ranking</button><button class="ghostbtn" data-o="wallet" id="wChip"></button></div>`);
   renderWalletChip();
   submitResult();
@@ -288,7 +304,7 @@ function renderWalletChip(){document.querySelectorAll('#wChip').forEach(b=>{b.in
 overlay.addEventListener('pointerdown',e=>{
   const b=e.target.closest('[data-o]');if(!b)return;e.stopPropagation();e.preventDefault();ensureAudio();
   const o=b.dataset.o;
-  if(o==='new')newGame();else if(o==='resume')resume();else if(o==='board')openBoard();else if(o==='wallet')openWallet();
+  if(o==='new')newGame();else if(o==='resume')resume();else if(o==='board')openBoard();else if(o==='wallet')openWallet();else if(o==='share')openShare();
 });
 $('pauseBtn').addEventListener('click',()=>{ensureAudio();state==='play'?pause():state==='pause'&&resume()});
 $('muteBtn').addEventListener('click',()=>{ensureAudio();muted=!muted;store.set('muted',muted?'1':'0');updateMute()});
@@ -364,6 +380,61 @@ async function openWallet(){
   const done=a=>{setWallet(a);closeModal('wModal');if(pendingSubmit&&state==='over')submitResult()};
   render();
   if(W&&!openWallet.sub){openWallet.sub=W.onChange(()=>{if(!$('wModal').classList.contains('hide'))render()})}
+}
+
+
+// ---------- Compartir ----------
+const SHARE_URL=CONFIG.APP_URL+'info.html';
+let iconImg=null;
+function loadIcon(){if(iconImg)return iconImg;iconImg=new Promise(res=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);im.src='icon-192.png'});return iconImg}
+function shareText(){
+  const s=g?g.score.toLocaleString('es'):'0';
+  const rank=lastResult&&lastResult.ok&&!lastResult.flagged?` y voy #${lastResult.rankApprox} en el ranking de hoy`:'';
+  return `🧱 Hice ${s} puntos en BloqDrop (nivel ${g?g.level:1})${rank}. ¿Me superas? 🏆 ${SHARE_URL}`;
+}
+async function makeShareImage(){
+  const W=1080,H=1080,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  const bg=x.createRadialGradient(W*.75,H*.2,40,W*.6,H*.4,W);bg.addColorStop(0,'#2c1858');bg.addColorStop(.55,'#120a26');bg.addColorStop(1,'#0b0716');x.fillStyle=bg;x.fillRect(0,0,W,H);
+  // tablero final a la derecha
+  const cs=40,bw=cs*COLS,bh=cs*ROWS,bx=W-bw-70,by=(H-bh)/2;
+  x.save();x.fillStyle='#100b1f';rr(x,bx-10,by-10,bw+20,bh+20,22);x.fill();x.strokeStyle='rgba(153,69,255,.5)';x.lineWidth=3;x.stroke();x.restore();
+  if(g)for(let yy=0;yy<ROWS;yy++)for(let xx=0;xx<COLS;xx++)if(g.board[yy][xx])block(x,bx+xx*cs,by+yy*cs,cs,COLORS[g.board[yy][xx]]);
+  // marca
+  const ic=await loadIcon();const lx=70;
+  if(ic){x.save();rr(x,lx,80,96,96,22);x.clip();x.drawImage(ic,lx,80,96,96);x.restore()}
+  x.textBaseline='alphabetic';x.font='900 64px system-ui,-apple-system,Segoe UI,Roboto,sans-serif';x.fillStyle='#ece7ff';x.fillText('Bloq',lx+116,150);
+  const bq=x.measureText('Bloq').width,gr=x.createLinearGradient(lx+116+bq,0,lx+116+bq+160,0);gr.addColorStop(0,'#9945FF');gr.addColorStop(1,'#14F195');x.fillStyle=gr;x.fillText('Drop',lx+116+bq,150);
+  // puntaje
+  x.fillStyle='#a79dcc';x.font='700 34px system-ui,-apple-system,Segoe UI,Roboto,sans-serif';x.fillText('MI PUNTAJE',lx,330);
+  const sc=g?g.score.toLocaleString('es'):'0';let fs=150;x.font=`900 ${fs}px system-ui,-apple-system,Segoe UI,Roboto,sans-serif`;
+  while(x.measureText(sc).width>bx-lx-40&&fs>60){fs-=8;x.font=`900 ${fs}px system-ui,-apple-system,Segoe UI,Roboto,sans-serif`}
+  x.fillStyle='#ffffff';x.fillText(sc,lx,330+fs*.95);
+  let yy=330+fs*.95+70;x.font='700 38px system-ui,-apple-system,Segoe UI,Roboto,sans-serif';x.fillStyle='#d4ccf0';
+  x.fillText(`Nivel ${g?g.level:1}  ·  ${g?g.lines:0} líneas`,lx,yy);
+  if(lastResult&&lastResult.ok&&!lastResult.flagged){yy+=80;x.fillStyle='rgba(250,204,21,.14)';rr(x,lx,yy-50,380,70,35);x.fill();x.strokeStyle='rgba(250,204,21,.6)';x.lineWidth=2;x.stroke();x.fillStyle='#facc15';x.font='800 36px system-ui,-apple-system,Segoe UI,Roboto,sans-serif';x.fillText(`🏆 #${lastResult.rankApprox} de hoy`,lx+28,yy-3)}
+  // llamada
+  x.fillStyle='#ffffff';x.font='900 52px system-ui,-apple-system,Segoe UI,Roboto,sans-serif';x.fillText('¿Me superas?',lx,H-190);
+  x.fillStyle='#14F195';x.font='700 30px system-ui,-apple-system,Segoe UI,Roboto,sans-serif';x.fillText('beticobetico.github.io/bloqdrop',lx,H-130);
+  x.fillStyle='#a79dcc';x.font='600 26px system-ui,-apple-system,Segoe UI,Roboto,sans-serif';x.fillText(`Ranking diario · ${CONFIG.PRIZE} al #1`,lx,H-86);
+  const url=c.toDataURL('image/png');
+  const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+  return {url,blob};
+}
+async function openShare(){
+  openModal('shModal');const btns=$('shBtns'),msg=$('shMsg');msg.textContent='';btns.innerHTML='<div class="empty" style="grid-column:1/-1">Creando imagen…</div>';
+  const {url,blob}=await makeShareImage();$('shImg').src=url;
+  const text=shareText(),file=blob?new File([blob],'bloqdrop-puntaje.png',{type:'image/png'}):null;
+  const canFile=!!(file&&navigator.canShare&&navigator.canShare({files:[file]}));
+  const enc=encodeURIComponent(text);
+  btns.innerHTML=`${canFile?'<button class="wide" id="shNative">📤 Compartir imagen</button>':''}
+    <a href="https://wa.me/?text=${enc}" target="_blank" rel="noopener">💬 WhatsApp</a>
+    <a href="https://x.com/intent/tweet?text=${enc}" target="_blank" rel="noopener">𝕏 Publicar</a>
+    <a href="https://t.me/share/url?url=${encodeURIComponent(SHARE_URL)}&text=${encodeURIComponent(text.replace(SHARE_URL,'').trim())}" target="_blank" rel="noopener">✈️ Telegram</a>
+    <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}" target="_blank" rel="noopener">📘 Facebook</a>
+    <button id="shCopy">📋 Copiar texto</button>
+    <a id="shSave" href="${url}" download="bloqdrop-puntaje.png">💾 Guardar imagen</a>`;
+  const n=$('shNative');if(n)n.onclick=async()=>{try{await navigator.share({files:[file],text,title:'BloqDrop'})}catch(e){}};
+  $('shCopy').onclick=async()=>{try{await navigator.clipboard.writeText(text);msg.className='status ok';msg.textContent='¡Texto copiado!'}catch(e){msg.className='status err';msg.textContent='No se pudo copiar.'}};
 }
 
 // ---------- layout ----------
