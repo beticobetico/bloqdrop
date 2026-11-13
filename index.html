@@ -141,7 +141,7 @@ input.addr{width:100%;padding:12px;border-radius:10px;border:1px solid var(--lin
     <div class="tabs"><button data-tab="today" class="on">Hoy</button><button data-tab="yesterday">Ayer</button></div>
     <div id="lbTop"></div>
     <div class="list" id="lbList"><div class="empty">Cargando…</div></div>
-    <p class="tiny" style="text-align:center;margin-top:10px"><a href="reglas.html">Reglas del concurso</a> · <a href="terminos.html">Términos</a> · <a href="privacidad.html">Privacidad</a></p>
+    <p class="tiny" style="text-align:center;margin-top:10px"><a href="reglas.html" target="_blank" rel="noopener">Reglas del concurso</a> · <a href="terminos.html" target="_blank" rel="noopener" id="lbTerms">Términos</a> · <a href="privacidad.html" target="_blank" rel="noopener" id="lbPriv">Privacidad</a></p>
   </div>
 </div>
 
@@ -163,6 +163,7 @@ input.addr{width:100%;padding:12px;border-radius:10px;border:1px solid var(--lin
   </div>
 </div>
 
+<script src="cherry.js"></script>
 <script src="engine.js"></script>
 <script>
 (()=>{
@@ -172,6 +173,45 @@ const CONFIG={
   PRIZE:'100 SKR',            // premio diario para el #1
   APP_URL:'https://beticobetico.github.io/bloqdrop/'
 };
+// ===================================================
+// ---------- Cherry (mini app) ----------
+const CHERRY_LEGAL={terms:'https://portal.cherry.fun/legal/app_bfe31c9f4a3e/62472256-e8ea-4164-bd96-ffcbbe01daeb/terms',privacy:'https://portal.cherry.fun/legal/app_bfe31c9f4a3e/62472256-e8ea-4164-bd96-ffcbbe01daeb/privacy'};
+const CH=window.BloqCherry||null;
+let IN_CHERRY=false;try{IN_CHERRY=!!(CH&&CH.isInsideCherry({strict:true}))}catch(e){}
+const cherryState={app:null,ready:false,session:null,name:null,error:null};
+if(IN_CHERRY){
+  document.documentElement.classList.add('in-cherry');
+  try{const dc=CH.readCherryDisplayContext();if(dc)applySafeArea(dc.safeArea)}catch(e){}
+  try{
+    cherryState.app=new CH.CherryMiniApp({strict:true});
+    cherryState.app.init().then(()=>{
+      const app=cherryState.app;cherryState.ready=true;
+      try{cherryState.name=app.user&&app.user.displayName||null}catch(e){}
+      try{if(app.context){CH.applyCherryContextToDocument(app.context);applySafeArea(app.context.safeArea)}}catch(e){}
+      try{app.onContextChange(ctx=>{try{CH.applyCherryContextToDocument(ctx);applySafeArea(ctx.safeArea)}catch(e){}})}catch(e){}
+      try{app.on('suspended',()=>pause())}catch(e){}
+      onCherryUser();
+      return cherryLogin(app.launchToken);
+    }).catch(e=>{cherryState.error='init';onCherryUser()});
+  }catch(e){cherryState.error='init'}
+}
+function applySafeArea(sa){
+  if(!sa)return;const el=document.getElementById('app');if(!el)return;
+  el.style.paddingTop=`max(calc(env(safe-area-inset-top) + 8px), ${(+sa.top||0)+8}px)`;
+  el.style.paddingBottom=`max(calc(env(safe-area-inset-bottom) + 10px), ${(+sa.bottom||0)+10}px)`;
+}
+async function cherryLogin(token){
+  if(!token||!CONFIG.API_URL)return;
+  try{
+    const r=await api({action:'cherry_auth'},8000,{Authorization:'Bearer '+token});
+    if(r&&r.session){cherryState.session=r.session;wallet=r.wallet;if(!cherryState.name&&r.displayName)cherryState.name=r.displayName}
+    else cherryState.error='auth';
+  }catch(e){cherryState.error='auth'}
+  onCherryUser();
+}
+function cherryLegalLinks(){const t=document.getElementById('lbTerms'),p=document.getElementById('lbPriv');if(t)t.href=CHERRY_LEGAL.terms;if(p)p.href=CHERRY_LEGAL.privacy}
+document.addEventListener('DOMContentLoaded',()=>{if(IN_CHERRY)cherryLegalLinks()});
+function onCherryUser(){renderWalletChip();if(pendingSubmit&&state==='over')submitResult()}
 // ===================================================
 const E=window.BloqEngine, A=E.ACTIONS, COLS=E.COLS, ROWS=E.ROWS, STEP=1000/E.TPS;
 const COLORS={I:'#22d3ee',J:'#3b82f6',L:'#fb923c',O:'#facc15',S:'#14F195',T:'#9945FF',Z:'#f43f5e'};
@@ -187,7 +227,7 @@ let CELL=24,SIDE=70,STRIPH=50,NEXTW=200;
 // ---------- almacenamiento local ----------
 const store={get(k,d){try{const v=localStorage.getItem('bloqdrop_'+k);return v===null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem('bloqdrop_'+k,v)}catch(e){}}};
 let best=parseInt(store.get('best','0'),10)||0;
-let wallet=store.get('wallet','')||'';
+let wallet=IN_CHERRY?'':(store.get('wallet','')||'');
 
 // ---------- sonido / vibración ----------
 let ac=null,muted=store.get('muted','0')==='1';
@@ -199,12 +239,13 @@ function buzz(ms){try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
 function updateMute(){$('muteBtn').textContent=muted?'🔇':'🔊'}updateMute();
 
 // ---------- API ----------
-async function api(body,timeout=8000){
+async function api(body,timeout=8000,extraHeaders){
   if(!CONFIG.API_URL)throw new Error('no_api');
   const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),timeout);
   try{
-    const r=await fetch(CONFIG.API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ctl.signal});
+    const r=await fetch(CONFIG.API_URL,{method:'POST',headers:Object.assign({'Content-Type':'application/json'},extraHeaders||{}),body:JSON.stringify(body),signal:ctl.signal});
     const j=await r.json().catch(()=>({error:'respuesta_invalida'}));
+    if(r.status===451)showOverlay(`<h1>No disponible</h1><p>BloqDrop no está disponible en tu país.</p>`);
     if(!r.ok&&!j.error)j.error='http_'+r.status;
     return j;
   }finally{clearTimeout(t)}
@@ -264,9 +305,10 @@ async function submitResult(){
   if(state!=='over'||submitted)return;
   if(!CONFIG.API_URL){setStatus('');return}
   if(!ranked){setStatus('Modo práctica: esta partida no cuenta para el ranking','warn');return}
-  if(!wallet){pendingSubmit=true;setStatus(`Conecta tu wallet para entrar al ranking<br><button class="ghostbtn" style="margin-top:8px" data-o="wallet">Conectar wallet</button>`,'warn');return}
+  if(IN_CHERRY&&!cherryState.session){pendingSubmit=true;setStatus(cherryState.error?'No se pudo iniciar sesión con Cherry. Cierra y vuelve a abrir el juego.':'Iniciando sesión con Cherry…',cherryState.error?'err':'');return}
+  if(!IN_CHERRY&&!wallet){pendingSubmit=true;setStatus(`Conecta tu wallet para entrar al ranking<br><button class="ghostbtn" style="margin-top:8px" data-o="wallet">Conectar wallet</button>`,'warn');return}
   submitted=true;pendingSubmit=false;setStatus('Verificando partida…');
-  let r;try{r=await api({action:'submit',session,wallet,log},20000)}catch(e){r={error:'red'}}
+  let r;try{r=await api(IN_CHERRY?{action:'submit',session,cherrySession:cherryState.session,log}:{action:'submit',session,wallet,log},20000)}catch(e){r={error:'red'}}
   if(r&&r.ok){
     lastResult=r;
     setStatus(r.flagged?`✓ Enviada · #${r.rankApprox} hoy (en revisión)`:`✓ Verificada · vas #${r.rankApprox} hoy`,'ok');
@@ -297,10 +339,12 @@ function menu(){
    <button class="cta" data-o="new">Jugar</button>
    ${CONFIG.API_URL?`<div class="row"><button class="ghostbtn" data-o="board">🏆 Ranking</button><button class="ghostbtn" data-o="wallet" id="wChip"></button></div>`:''}
    <p class="tiny">Toca el tablero para girar · desliza para mover<br>Desliza rápido hacia abajo para soltar · arriba para guardar</p>
-   ${CONFIG.API_URL?`<p class="tiny"><a href="reglas.html">Reglas del concurso</a></p>`:''}`);
+   ${CONFIG.API_URL?`<p class="tiny"><a href="reglas.html" target="_blank" rel="noopener">Reglas del concurso</a>${IN_CHERRY?` · <a href="${CHERRY_LEGAL.terms}" target="_blank" rel="noopener">Términos</a> · <a href="${CHERRY_LEGAL.privacy}" target="_blank" rel="noopener">Privacidad</a>`:''}</p>`:''}`);
   renderWalletChip();
 }
-function renderWalletChip(){document.querySelectorAll('#wChip').forEach(b=>{b.innerHTML=wallet?`👛 <span class="chip">${esc(short(wallet))}</span>`:'👛 Conectar wallet'})}
+function renderWalletChip(){document.querySelectorAll('#wChip').forEach(b=>{
+  if(IN_CHERRY){b.disabled=true;b.innerHTML=cherryState.name?`👤 ${esc(cherryState.name)}${wallet?` · <span class="chip">${esc(wallet.slice(0,4))}</span>`:''}`:(wallet?`👤 <span class="chip">${esc(short(wallet))}</span>`:'👤 Cherry…');return}
+  b.innerHTML=wallet?`👛 <span class="chip">${esc(short(wallet))}</span>`:'👛 Conectar wallet'})}
 overlay.addEventListener('pointerdown',e=>{
   const b=e.target.closest('[data-o]');if(!b)return;e.stopPropagation();e.preventDefault();ensureAudio();
   const o=b.dataset.o;
@@ -354,9 +398,10 @@ function loadWalletLib(){
   walletLib=new Promise(res=>{const s=document.createElement('script');s.src='wallet.js';s.onload=()=>{try{window.BloqWallet.init({name:'BloqDrop',uri:CONFIG.APP_URL,icon:'icon-192.png'})}catch(e){}res(window.BloqWallet||null)};s.onerror=()=>res(null);document.head.appendChild(s)});
   return walletLib;
 }
-loadWalletLib();
+if(!IN_CHERRY)loadWalletLib();
 function setWallet(a){wallet=a||'';store.set('wallet',wallet);renderWalletChip()}
 async function openWallet(){
+  if(IN_CHERRY)return;
   openModal('wModal');const body=$('wBody');
   const W=await loadWalletLib();
   const render=()=>{

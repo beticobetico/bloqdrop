@@ -1,0 +1,6 @@
+/*
+  Content-Security-Policy: frame-ancestors 'self' https://chat.cherry.fun https://cherry.fun https://*.cherry.fun
+
+/.well-known/cherry-app.json
+  Content-Type: application/json
+  Access-Control-Allow-Origin: *
